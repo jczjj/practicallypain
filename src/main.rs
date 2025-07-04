@@ -2,6 +2,8 @@ use actix_web::{App, HttpServer, web};
 use sqlx::SqlitePool;
 use std::fs;
 use anyhow::Result;
+use actix_web::dev::Service;
+use handlers::auth::login;
 
 mod handlers {
     pub mod auth;
@@ -33,6 +35,16 @@ async fn main() -> Result<()> {
 
     HttpServer::new(move || {
         App::new()
+            // === Temporary logger ===
+            .wrap_fn(|req: ServiceRequest, srv| {
+                println!("➡️  {} {}", req.method(), req.uri());
+                let fut = srv.call(req);
+                async move {
+                    let res: ServiceResponse = fut.await?;
+                    println!("⬅️  {} {}", res.status(), res.request().uri());
+                    Ok(res)
+                }
+            })
 
             // shared DB pool
             .app_data(web::Data::new(pool.clone()))

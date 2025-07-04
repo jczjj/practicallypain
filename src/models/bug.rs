@@ -22,7 +22,7 @@ pub struct Bug {
     pub bug_id:       i64,
     pub title:        String,
     pub description:  String,
-    pub reported_by:  String,
+    pub reported_by:  i64,
     pub severity:     String,
     pub developer_id: Option<i64>,
     pub status:       String,

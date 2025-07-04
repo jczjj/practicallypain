@@ -26,6 +26,8 @@ use handlers::assign::{get_assign_form, post_assign_form};
 use middleware::auth_middleware::AuthMiddleware;
 use middleware::admin_guard::AdminGuard;
 use models::bug::{create_bug, list_bugs, get_bug};
+use models::user::list_users;
+
 
 #[actix_web::main]
 async fn main() -> Result<()> {
@@ -49,6 +51,8 @@ async fn main() -> Result<()> {
             .service(get_bug)
             .service(login)
             .service(register)
+            .service(list_users)
+
 
 
             .service(login) //if using curlx
@@ -59,7 +63,7 @@ async fn main() -> Result<()> {
                 .service(register)
                 // Add your admin routes here, e.g.
             )
-            .wrap(AuthMiddleware) // AuthMiddlewarehere, need add routes to it also
+            //.wrap(AuthMiddleware) // AuthMiddlewarehere, need add routes to it also
             .route("/bugs/assign", web::get().to(get_assign_form))
             .route("/bugs/assign", web::post().to(post_assign_form))
             

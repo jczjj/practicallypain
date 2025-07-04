@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
-use sqlx::FromRow;
+use sqlx::{FromRow, SqlitePool};
+use actix_web::{get, web, HttpResponse, Result as ActixResult};
+
 
 #[derive(Debug, FromRow, Serialize, Deserialize)]
 pub struct User {
@@ -42,6 +44,20 @@ impl User {
 
         Ok(rec)
     }
+        /// List all users in the database
+    pub async fn list(
+        pool: &SqlitePool,
+    ) -> sqlx::Result<Vec<Self>> {
+        sqlx::query_as::<_, User>(
+            r#"
+            SELECT user_id, username, password_hash, is_admin
+              FROM users
+            "#,
+        )
+        .fetch_all(pool)
+        .await
+    }
+
 }
 
 
@@ -65,4 +81,24 @@ pub struct Claims {
     pub sub: String,     // Subject (username)
     pub is_admin: bool,  // admin flag
     pub exp: usize,      // expiration timestamp (unix)
+}
+
+#[derive(Serialize)]
+struct UserInfo {
+    user_id: i64,
+    username: String,
+}
+
+/// GET /users → list all users (admin‐only if you like)
+#[get("/users")]
+pub async fn list_users(pool: web::Data<SqlitePool>) -> ActixResult<HttpResponse> {
+    let users = User::list(&pool)
+        .await
+        .map_err(actix_web::error::ErrorInternalServerError)?;
+
+    let infos: Vec<UserInfo> = users.into_iter()
+        .map(|u| UserInfo { user_id: u.user_id, username: u.username })
+        .collect();
+
+    Ok(HttpResponse::Ok().json(infos))
 }

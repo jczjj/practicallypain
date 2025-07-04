@@ -19,13 +19,14 @@ mod middleware {
     pub mod admin_guard;
 }
 
-use handlers::auth::login;
+use handlers::auth::{login, register};
 use handlers::assign::{get_assign_form, post_assign_form};
 use middleware::auth_middleware::AuthMiddleware;
 use middleware::admin_guard::AdminGuard;
 
 #[actix_web::main]
 async fn main() -> Result<()> {
+
     // 1) Read & apply your schema:
     let sql = fs::read_to_string("schema.sql")?;
     let pool = SqlitePool::connect("sqlite://bugtrack.db").await?;
@@ -33,6 +34,7 @@ async fn main() -> Result<()> {
     let tera = Tera::new("templates/**/*").unwrap();
 
     println!("Starting server on http://127.0.0.1:8080");
+
 
     HttpServer::new(move || {
         App::new()
@@ -47,11 +49,13 @@ async fn main() -> Result<()> {
             .service(
                 web::scope("/admin")
                 .wrap(AdminGuard)
+                .service(register)
                 // Add your admin routes here, e.g.
             )
             .wrap(AuthMiddleware) // AUthMiddlewarehere, need add routes to it also
             .route("/bugs/assign", web::get().to(get_assign_form))
             .route("/bugs/assign", web::post().to(post_assign_form))
+            
     })
     .bind(("127.0.0.1", 8080))?
     .run()

@@ -1,44 +1,77 @@
 use actix_web::{post, web, HttpResponse, Responder};
 use sha2::{Sha256, Digest};
-use crate::models::user::{LoginRequest, Claims};
+use crate::models::user::{LoginRequest, Claims, User,RegisterRequest};
 use jsonwebtoken::{EncodingKey, DecodingKey, Header, Validation, TokenData, encode, decode, errors::Error};
+use sqlx::SqlitePool;
 
 const SALT: &str = "bugtrack2025";
 
 //For jwt
 const SECRET_KEY: &[u8] = b"8f3a7d1e5b924f60a3c2e7d9b1f04c12";
 
-// Hardcoded password hash: hash("bugtrack2025admin123")
-const ADMIN_HASH: &str = "fc6e4582a0162f9642bf852d3fa902014c8fe15e6fde8cd3377561ce513603ae";
+#[post("/register")]
+pub async fn register(
+    data: web::Json<RegisterRequest>,
+    pool: web::Data<SqlitePool>,
+) -> impl Responder {
+    let username = data.username.trim();
+    let password_hash = hash_password(&data.password);
+    let is_admin = data.is_admin.unwrap_or(false);
+
+    // Check if user already exists
+    match User::find_by_username(&pool, username).await {
+        Ok(Some(_)) => {
+            return HttpResponse::Conflict().json(serde_json::json!({
+                "status": "error",
+                "message": "Username already taken"
+            }));
+        }
+        Ok(None) => {
+            // Create new user
+            match User::create_user(&pool, username, &password_hash, is_admin).await {
+                Ok(_) => HttpResponse::Ok().json(serde_json::json!({
+                    "status": "success",
+                    "message": "User registered successfully"
+                })),
+                Err(e) => {
+                    eprintln!("Error inserting user: {:?}", e);
+                    HttpResponse::InternalServerError().finish()
+                }
+            }
+        }
+        Err(e) => {
+            eprintln!("DB error: {:?}", e);
+            HttpResponse::InternalServerError().finish()
+        }
+    }
+}
 
 
 #[post("/login")]
-pub async fn login(data: web::Json<LoginRequest>) -> impl Responder {
-    let username = &data.username;
-    let password = &data.password;
+pub async fn login(data: web::Json<LoginRequest>,pool: web::Data<SqlitePool>) -> impl Responder {
+    let username = data.username.clone();
+    let password = hash_password(&data.password.clone());
 
-if username == "admin" && hash_password(password) == ADMIN_HASH {
-        // admin login
-        match create_jwt(username, true) {
-            Ok(token) => HttpResponse::Ok().json(serde_json::json!({
-                "status": "success",
-                "token": token
-            })),
-            Err(_) => HttpResponse::InternalServerError().finish(),
+    match User::find_by_username(&pool, &username).await {
+        Ok(Some(user)) =>{
+            if password == user.password_hash {
+                print!("{}", user.is_admin);
+                match create_jwt(&username, user.is_admin) {
+                    Ok(token) => HttpResponse::Ok().json(serde_json::json!({
+                    "status": "success",
+                    "token": token
+                })),
+                Err(_) => HttpResponse::InternalServerError().finish(),
+                }
+            } else {
+                HttpResponse::Unauthorized().body("Invalid credentials")
+            }
         }
-    } else if username == "user" && password == "user123" {
-        // user login (no hashing example)
-        match create_jwt(username, false) {
-            Ok(token) => HttpResponse::Ok().json(serde_json::json!({
-                "status": "success",
-                "token": token
-            })),
-            Err(_) => HttpResponse::InternalServerError().finish(),
+        Ok(None) => HttpResponse::NotFound().body("Invalid credentials"),
+        Err(err) => {
+            eprintln!("Database error: {:?}", err);
+            HttpResponse::InternalServerError().body("Internal Error")
         }
-    } else {
-        HttpResponse::Unauthorized().json(serde_json::json!({
-            "status": "failure"
-        }))
     }
 }
 

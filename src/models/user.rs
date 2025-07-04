@@ -23,12 +23,40 @@ impl User {
         .await?;
         Ok(rec)
     }
+
+    pub async fn create_user(
+        pool: &sqlx::SqlitePool,
+        username: &str,
+        password_hash: &str,
+        is_admin: bool,
+    ) -> sqlx::Result<Option<Self>> {
+        let rec = sqlx::query_as::<_, User>(
+            "INSERT INTO users (username, password_hash, is_admin)
+             VALUES (?, ?, ?)"
+        )
+        .bind(username)
+        .bind(password_hash)
+        .bind(is_admin)
+        .fetch_optional(pool)
+        .await?;
+
+        Ok(rec)
+    }
 }
+
 
 #[derive(Deserialize)]
 pub struct LoginRequest {
     pub username: String,
     pub password: String,
+}
+
+// To register user, only done by admin
+#[derive(Deserialize)]
+pub struct RegisterRequest {
+    pub username: String,
+    pub password: String,
+    pub is_admin: Option<bool>, 
 }
 
 

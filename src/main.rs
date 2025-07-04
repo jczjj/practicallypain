@@ -11,6 +11,8 @@ mod handlers {
 
 mod models {
     pub mod user;
+    pub mod project;
+    pub mod bug;
 }
 
 mod middleware {
@@ -22,6 +24,7 @@ use handlers::auth::{login, register, login_page};
 use handlers::assign::{get_assign_form, post_assign_form};
 use middleware::auth_middleware::AuthMiddleware;
 use middleware::admin_guard::AdminGuard;
+use models::bug::{create_bug, list_bugs, get_bug};
 
 #[actix_web::main]
 async fn main() -> Result<()> {
@@ -40,8 +43,12 @@ async fn main() -> Result<()> {
             // shared DB pool
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(tera.clone()))
-            // ← Here: mount your routes/handlers!
-            //   .service(create_bug) 
+            .service(create_bug)
+            .service(list_bugs)
+            .service(get_bug)
+            .service(login)
+            .service(register)
+
 
             .service(login) //if using curlx
             .route("/login", web::get().to(login_page)) //if using endpoint

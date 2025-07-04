@@ -32,3 +32,9 @@ pub struct LoginRequest {
 }
 
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Claims {
+    pub sub: String,     // Subject (username)
+    pub is_admin: bool,  // admin flag
+    pub exp: usize,      // expiration timestamp (unix)
+}

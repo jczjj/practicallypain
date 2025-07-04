@@ -3,7 +3,6 @@ use sqlx::SqlitePool;
 use std::fs;
 use anyhow::Result;
 use actix_web::dev::Service;
-use handlers::auth::login;
 
 mod handlers {
     pub mod auth;

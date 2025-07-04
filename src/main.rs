@@ -32,21 +32,10 @@ async fn main() -> Result<()> {
     sqlx::query(&sql).execute(&pool).await?;
     let tera = Tera::new("templates/**/*").unwrap();
 
-    println!("▶️  Starting server on http://127.0.0.1:8080");
+    println!("Starting server on http://127.0.0.1:8080");
 
     HttpServer::new(move || {
         App::new()
-            // === Temporary logger ===
-            .wrap_fn(|req: ServiceRequest, srv| {
-                println!("➡️  {} {}", req.method(), req.uri());
-                let fut = srv.call(req);
-                async move {
-                    let res: ServiceResponse = fut.await?;
-                    println!("⬅️  {} {}", res.status(), res.request().uri());
-                    Ok(res)
-                }
-            })
-
             // shared DB pool
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(tera.clone()))

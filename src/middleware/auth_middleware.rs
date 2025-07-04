@@ -49,8 +49,6 @@ where
     fn call(&self, req: ServiceRequest) -> Self::Future {
         println!("AuthMiddleware: processing request to {}", req.path());
 
-        let auth_header = req.headers().get("Authorization").and_then(|hv| hv.to_str().ok());
-
         if req.path() == "/login" {
             let fut = self.service.call(req);
             return Box::pin(async move {
@@ -59,7 +57,8 @@ where
                 Ok(res.map_into_left_body())
             });
         }
-         let token_opt = req.cookie("auth_token").map(|c| c.value().to_string());
+         let token_opt = req.cookie("auth_token").map(|c| c.value().to_string()); // For web page access
+         let auth_header = req.headers().get("Authorization").and_then(|hv| hv.to_str().ok()); // For command access
          
         if let Some(token) = token_opt {
                 match validate_jwt(&token) {
@@ -77,8 +76,30 @@ where
                         println!("AuthMiddleware: JWT validation failed: {:?}", err);
                     }
                 }
-            } else {
-                println!("AuthMiddleware: No auth_token cookie found");
+            } 
+            
+            else if let Some(auth_header) = auth_header {
+                println!("AuthMiddleware: Authorization header found: {}", auth_header);
+                if auth_header.starts_with("Bearer ") {
+                    let token = &auth_header[7..];
+                    match validate_jwt(token) {
+                        Ok(data) => {
+                            println!("AuthMiddleware: JWT valid for user {}", data.claims.sub);
+                            req.extensions_mut().insert(data.claims);
+                            let fut = self.service.call(req);
+                            return Box::pin(async move {
+                                let res = fut.await?;
+                                println!("AuthMiddleware: downstream response status: {}", res.status());
+                                Ok(res.map_into_left_body())
+                            });
+                        }
+                        Err(err) => {
+                            println!("AuthMiddleware: JWT validation failed: {:?}", err);
+                        }
+                    }
+                } 
+            } else {   
+                println!("AuthMiddleware: No auth_token header / cookie found");
             }
 
             // Unauthorized if token is missing or invalid

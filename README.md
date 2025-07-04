@@ -1,5 +1,11 @@
 # practicallypain
 
+This application requires user to login to access any services:
+Username: admin
+Password: admin123
+
+Username: user1
+Password: user123
 
 IF USING COMMAND LINE FOR TESTING:
 

@@ -55,7 +55,7 @@ where
             let fut = self.service.call(req);
             return Box::pin(async move {
                 let res = fut.await?;
-                println!("AuthMiddleware: /login response status: {}", res.status());
+                println!("⬅ Outgoing: {} {}", res.status(), res.request().uri()); // Log outgoing response
                 Ok(res.map_into_left_body())
             });
         }
@@ -89,6 +89,8 @@ where
         let response = HttpResponse::Unauthorized()
             .json(serde_json::json!({ "error": "Unauthorized" }))
             .map_into_right_body();
+
+        
 
         let res = ServiceResponse::new(req, response);
 

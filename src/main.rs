@@ -2,7 +2,7 @@ use actix_web::{App, HttpServer, web};
 use sqlx::SqlitePool;
 use std::fs;
 use anyhow::Result;
-use actix_web::dev::Service;
+use actix_web::dev::{Service, ServiceRequest, ServiceResponse};
 
 mod handlers {
     pub mod auth;

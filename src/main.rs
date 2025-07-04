@@ -2,10 +2,12 @@ use actix_web::{App, HttpServer, web};
 use sqlx::SqlitePool;
 use std::fs;
 use anyhow::Result;
-use actix_web::dev::Service;
+use actix_web::dev::{Service, ServiceResponse, ServiceRequest};
+use tera::Tera;
 
 mod handlers {
     pub mod auth;
+    pub mod assign;
 }
 
 mod models {
@@ -18,10 +20,9 @@ mod middleware {
 }
 
 use handlers::auth::login;
+use handlers::assign::{get_assign_form, post_assign_form};
 use middleware::auth_middleware::AuthMiddleware;
 use middleware::admin_guard::AdminGuard;
-
-
 
 #[actix_web::main]
 async fn main() -> Result<()> {
@@ -29,6 +30,7 @@ async fn main() -> Result<()> {
     let sql = fs::read_to_string("schema.sql")?;
     let pool = SqlitePool::connect("sqlite://bugtrack.db").await?;
     sqlx::query(&sql).execute(&pool).await?;
+    let tera = Tera::new("templates/**/*").unwrap();
 
     println!("▶️  Starting server on http://127.0.0.1:8080");
 
@@ -47,6 +49,7 @@ async fn main() -> Result<()> {
 
             // shared DB pool
             .app_data(web::Data::new(pool.clone()))
+            .app_data(web::Data::new(tera.clone()))
             // ← Here: mount your routes/handlers!
             //   .service(create_bug) 
 
@@ -58,6 +61,8 @@ async fn main() -> Result<()> {
                 // Add your admin routes here, e.g.
             )
             .wrap(AuthMiddleware) // AUthMiddlewarehere, need add routes to it also
+            .route("/bugs/assign", web::get().to(get_assign_form))
+            .route("/bugs/assign", web::post().to(post_assign_form))
     })
     .bind(("127.0.0.1", 8080))?
     .run()

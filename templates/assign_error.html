@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment Error</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #212529;
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #1a202c;
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: -0.025em;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+        }
+
+        .error-header {
+            background-color: #fef2f2;
+            border-bottom: 1px solid #fecaca;
+            padding: 24px 32px;
+            text-align: center;
+        }
+
+        .error-icon {
+            width: 48px;
+            height: 48px;
+            background-color: #dc2626;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .error-icon::after {
+            content: "!";
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .error-title {
+            color: #dc2626;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .error-subtitle {
+            color: #b91c1c;
+            font-size: 0.875rem;
+        }
+
+        .error-details {
+            padding: 32px;
+        }
+
+        .error-message {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .error-message-label {
+            color: #b91c1c;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .error-message-text {
+            color: #dc2626;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .troubleshooting {
+            background-color: #fffbeb;
+            border: 1px solid #fed7aa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .troubleshooting h3 {
+            color: #92400e;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .troubleshooting ul {
+            color: #b45309;
+            font-size: 0.875rem;
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .troubleshooting li {
+            padding: 4px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .troubleshooting li::before {
+            content: "•";
+            color: #d97706;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .action-section {
+            background-color: #f9fafb;
+            padding: 24px 32px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+        }
+
+        .action-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #1f2937;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background-color: #111827;
+            text-decoration: none;
+        }
+
+        .action-btn:active {
+            transform: translateY(1px);
+        }
+
+        .support-info {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 20px 16px;
+            }
+            
+            .error-header,
+            .error-details,
+            .action-section {
+                padding-left: 24px;
+                padding-right: 24px;
+            }
+            
+            .header h1 {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Assignment Error</h1>
+    </div>
+
+    <div class="container">
+        <div class="error-header">
+            <div class="error-icon"></div>
+            <div class="error-title">Assignment Failed</div>
+            <div class="error-subtitle">Unable to complete the bug assignment</div>
+        </div>
+
+        <div class="error-details">
+            <div class="error-message">
+                <div class="error-message-label">Error Details</div>
+                <div class="error-message-text">{{ message }}</div>
+            </div>
+
+            <div class="troubleshooting">
+                <h3>Common Solutions</h3>
+                <ul>
+                    <li>Verify the bug ID exists in the system</li>
+                    <li>Confirm the developer ID is valid and active</li>
+                    <li>Check if the bug is already assigned</li>
+                    <li>Ensure you have permission to make assignments</li>
+                    <li>Try refreshing the page and attempting again</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="action-section">
+            <a href="/bugs/assign" class="action-btn">
+                Return to Assignment Form
+            </a>
+            <div class="support-info">
+                If the problem persists, contact your system administrator
+            </div>
+        </div>
+    </div>
+</body>
+</html>

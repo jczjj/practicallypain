@@ -12,6 +12,8 @@ mod handlers {
 
 mod models {
     pub mod user;
+    pub mod bug;
+    pub mod project;
 }
 
 mod middleware {
@@ -23,6 +25,8 @@ use handlers::auth::{login, register};
 use handlers::assign::{get_assign_form, post_assign_form};
 use middleware::auth_middleware::AuthMiddleware;
 use middleware::admin_guard::AdminGuard;
+use models::bug::{create_bug, list_bugs, get_bug};
+
 
 #[actix_web::main]
 async fn main() -> Result<()> {
@@ -41,10 +45,11 @@ async fn main() -> Result<()> {
             // shared DB pool
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(tera.clone()))
-            // ← Here: mount your routes/handlers!
-            //   .service(create_bug) 
-
+            .service(create_bug)
+            .service(list_bugs)
+            .service(get_bug)
             .service(login)
+            .service(register)
 
             .service(
                 web::scope("/admin")
@@ -52,7 +57,7 @@ async fn main() -> Result<()> {
                 .service(register)
                 // Add your admin routes here, e.g.
             )
-            .wrap(AuthMiddleware) // AUthMiddlewarehere, need add routes to it also
+            //.wrap(AuthMiddleware) // AUthMiddlewarehere, need add routes to it also
             .route("/bugs/assign", web::get().to(get_assign_form))
             .route("/bugs/assign", web::post().to(post_assign_form))
             

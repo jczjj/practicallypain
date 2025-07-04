@@ -5,6 +5,18 @@ use std::fs;
 use anyhow::Result;
 use actix_web::dev::Service;
 
+mod handlers {
+    pub mod auth;
+}
+
+mod models {
+    pub mod user;
+}
+
+use handlers::auth::login;
+
+
+
 #[actix_web::main]
 async fn main() -> Result<()> {
     // 1) Read & apply your schema:
@@ -33,6 +45,8 @@ async fn main() -> Result<()> {
             //   .service(create_bug) 
             //   .service(list_bugs)
             //   …etc…
+
+            .service(login)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

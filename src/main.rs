@@ -1,4 +1,5 @@
 use actix_web::{App, HttpServer, web};
+use serde::de;
 use sqlx::SqlitePool;
 use std::fs;
 use anyhow::Result;
@@ -25,8 +26,9 @@ use handlers::auth::{login, register, login_page};
 use handlers::assign::{get_assign_form, post_assign_form};
 use middleware::auth_middleware::AuthMiddleware;
 use middleware::admin_guard::AdminGuard;
-use models::bug::{create_bug, list_bugs, get_bug};
+use models::bug::{create_bug, list_bugs, get_bug,update_bug, delete_bug};
 use models::user::list_users;
+
 
 
 #[actix_web::main]
@@ -49,6 +51,8 @@ async fn main() -> Result<()> {
             .service(create_bug)
             .service(list_bugs)
             .service(get_bug)
+            .service(update_bug)
+            .service(delete_bug)
             .service(login)
             .service(register)
             .service(list_users)

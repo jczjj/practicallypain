@@ -57,7 +57,7 @@ where
         Box::pin(async move {
             let res = svc.call(req).await;
             let duration = start.elapsed();
-            println!("📨 '{}' took {:?}", path, duration);
+            println!("\nRequest: '{}' took: {:?}", path, duration);
             res
         })
     }

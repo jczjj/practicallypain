@@ -4,6 +4,7 @@ use sqlx::SqlitePool;
 use std::fs;
 use anyhow::Result;
 use actix_web::dev::Service;
+use handlers::auth::login;
 
 mod handlers {
     pub mod auth;
@@ -13,8 +14,7 @@ mod models {
     pub mod user;
 }
 
-use handlers::auth::login;
-
+mod middleware;
 
 
 #[actix_web::main]
@@ -28,6 +28,9 @@ async fn main() -> Result<()> {
 
     HttpServer::new(move || {
         App::new()
+            // Applying middleware.rs
+            .wrap(middleware::Logging)
+            
             // === Temporary logger ===
             .wrap_fn(|req: ServiceRequest, srv| {
                 println!("➡️  {} {}", req.method(), req.uri());

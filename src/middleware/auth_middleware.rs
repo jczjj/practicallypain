@@ -59,12 +59,10 @@ where
                 Ok(res.map_into_left_body())
             });
         }
-
-        if let Some(auth_header) = auth_header {
-            println!("AuthMiddleware: Authorization header found: {}", auth_header);
-            if auth_header.starts_with("Bearer ") {
-                let token = &auth_header[7..];
-                match validate_jwt(token) {
+         let token_opt = req.cookie("auth_token").map(|c| c.value().to_string());
+         
+        if let Some(token) = token_opt {
+                match validate_jwt(&token) {
                     Ok(data) => {
                         println!("AuthMiddleware: JWT valid for user {}", data.claims.sub);
                         req.extensions_mut().insert(data.claims);
@@ -80,20 +78,16 @@ where
                     }
                 }
             } else {
+                println!("AuthMiddleware: No auth_token cookie found");
             }
-        } else {
+
+            // Unauthorized if token is missing or invalid
+            let (req, _pl) = req.into_parts();
+            let response = HttpResponse::Unauthorized()
+                .json(serde_json::json!({ "error": "Unauthorized" }))
+                .map_into_right_body();
+
+            let res = ServiceResponse::new(req, response);
+            Box::pin(async { Ok(res) })
         }
-
-        let (req, _pl) = req.into_parts();
-
-        let response = HttpResponse::Unauthorized()
-            .json(serde_json::json!({ "error": "Unauthorized" }))
-            .map_into_right_body();
-
-        
-
-        let res = ServiceResponse::new(req, response);
-
-        Box::pin(async { Ok(res) })
-    }
 }

@@ -1,8 +1,10 @@
-use actix_web::{post, web, HttpResponse, Responder};
+use actix_web::{post, web, HttpResponse, Responder, cookie::Cookie};
 use sha2::{Sha256, Digest};
 use crate::models::user::{LoginRequest, Claims, User,RegisterRequest};
 use jsonwebtoken::{EncodingKey, DecodingKey, Header, Validation, TokenData, encode, decode, errors::Error};
 use sqlx::SqlitePool;
+use actix_files::NamedFile;
+use std::path::PathBuf;
 
 const SALT: &str = "bugtrack2025";
 
@@ -57,10 +59,20 @@ pub async fn login(data: web::Json<LoginRequest>,pool: web::Data<SqlitePool>) ->
             if password == user.password_hash {
                 print!("{}", user.is_admin);
                 match create_jwt(&username, user.is_admin) {
-                    Ok(token) => HttpResponse::Ok().json(serde_json::json!({
-                    "status": "success",
-                    "token": token
-                })),
+                    Ok(token) => {
+                        let cookie = Cookie::build("auth_token", &token)
+                        .path("/")
+                        .http_only(true)
+                        .finish();
+
+                        HttpResponse::Ok()
+                        .cookie(cookie)
+                        .json(serde_json::json!({
+                        "status": "success",
+                        "token": token}))
+                        
+                
+                },
                 Err(_) => HttpResponse::InternalServerError().finish(),
                 }
             } else {
@@ -73,6 +85,10 @@ pub async fn login(data: web::Json<LoginRequest>,pool: web::Data<SqlitePool>) ->
             HttpResponse::InternalServerError().body("Internal Error")
         }
     }
+}
+
+pub async fn login_page() -> actix_web::Result<NamedFile> {
+    Ok(NamedFile::open("templates/login.html")?)
 }
 
 fn hash_password(password: &str) -> String {

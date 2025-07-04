@@ -237,4 +237,35 @@
         </div>
     </div>
 </body>
+
+<script>
+    const token = localStorage.getItem("jwt_token");
+
+    const response = await fetch("/protected_endpoint", {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    });
+
+    async function fetchProtectedData() {
+        const token = localStorage.getItem("jwt_token");
+
+        const response = await fetch("/protected", {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const display = document.getElementById("protectedData");
+        if (response.ok) {
+            const data = await response.json();
+            display.textContent = JSON.stringify(data, null, 2);
+        } else {
+            display.textContent = "Unauthorized";
+        }
+    }
+
+    fetchProtectedData();
+</script>
 </html>
